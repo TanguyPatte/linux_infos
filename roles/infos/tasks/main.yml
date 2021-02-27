@@ -1,0 +1,17 @@
+---
+
+- name: Fetch disk info
+  command: df -h
+  register: disk_infos
+
+- name: Generate generic infos in /tmp/
+  template:
+    src: macos.html.j2
+    dest: /tmp/infos.html
+  when: ansible_distribution_file_variety != "Debian"
+
+- name: Generate linux infos in /tmp/
+  template:
+    src: linux.html.j2
+    dest: ./infos.html
+  when: ansible_distribution_file_variety == "Debian"

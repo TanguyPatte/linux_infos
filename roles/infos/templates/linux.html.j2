@@ -1,0 +1,152 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>Information sur la machine {{ ansible_nodename }}</title>
+    <style type="text/css">
+      .styled-table {
+        border-collapse: collapse;
+        margin: 25px 0;
+        font-size: 0.9em;
+        font-family: sans-serif;
+        min-width: 400px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    .styled-table td {
+    padding: 12px 15px;
+}
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.styled-table tbody tr:nth-of-type(even) {
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #009879;
+}
+.styled-table tbody tr.active-row {
+    font-weight: bold;
+    color: #009879;
+}
+  </style>
+  </head>
+  <body>
+    <!-- Ici, on placera tout le contenu à destination
+    de l'utilisateur -->
+    <h1> Spécification de la machine {{ ansible_nodename }} le {{ ansible_date_time.date }} {{ ansible_date_time.time }}</h1>
+    <h2>Nom du produit : {{ ansible_product_name }}</h2>
+    <div>
+      <table class="styled-table">
+        <tbody>
+          <tr>
+            <td>Operating System</td>
+            <td>{{ ansible_distribution }} {{ ansible_distribution_version }} {{ ansible_os_family }}</td>
+          </tr>
+          <tr>
+            <td>Kernel</td>
+            <td>{{ ansible_kernel_version }}</td>
+          </tr>
+          <tr>
+            <td>Mémoire</td>
+            <td>{{ ansible_memtotal_mb / 1024 }} G</td>
+          </tr>
+          <tr>
+            <td>Nombre de cœur</td>
+            <td>{{ ansible_processor_cores }}</td>
+          </tr>
+          <tr>
+            <td>Nombre de vcpu</td>
+            <td>{{ ansible_processor_vcpus }}</td>
+          </tr>
+          <tr>
+            <td>Processeur</td>
+            <td>{{ ansible_processor | join(' ')}}</td>
+          </tr>
+           <tr>
+            <td>Architecture</td>
+            <td>{{ ansible_architecture }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+
+      <h2>Points de montage</h2>
+      <table class="styled-table">
+        <thead>
+          <tr>
+            <th>Device</th>
+            <th>Mount point</th>
+            <th>fstype</th>
+            <th>size available</th>
+            <th>total size</th>
+            <th>% used</th>
+            <th>options</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for mount in (ansible_mounts | sort(attribute='device')) %}
+        {% if not mount.device.startswith("/dev/loop") %}
+        <tr>
+          <td>{{ mount.device }}</td>
+          <td>{{ mount.mount }}</td>
+          <td>{{ mount.fstype }}</td>
+          <td>
+          {% if mount.size_available // 1024 // 1024 // 1024 <= 0 %}
+            {{ mount.size_available // 1024 // 1024 }}M
+          {% else %}
+              {{ mount.size_available // 1024 // 1024 //1024 }}G
+          {% endif %}
+          </td>
+          <td>
+          {% if mount.size_total // 1024 // 1024 // 1024 <= 0 %}
+            {{ mount.size_total // 1024 // 1024 }}M
+          {% else %}
+              {{ mount.size_total // 1024 // 1024 //1024 }}G
+          {% endif %}
+          <td>
+          {% if mount.size_total > 0 %}
+            {{ 100 -  (mount.size_available * 100 // mount.size_total)}}%
+          {% endif %}
+          </td>
+          <td>{{ mount.options.split(',') | join(', ') }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+        </tbody>
+      </table>
+
+
+      <h2> Information sur les disques : </h2>
+      {% for device in ansible_devices %}
+      {% if not device.startswith("loop") %}
+      <h3>{{ device }}</h3>
+      <p>{{ ansible_devices[device].host }}</p>
+      <p>model : {{ ansible_devices[device].model }}</p>
+      <p>ids : {{ ansible_devices[device].links.ids | join(', ') }}</p>
+      <p>Partitions : </p>
+        {% for partition in ansible_devices[device].partitions %}
+          <table class="styled-table">
+            <tbody>
+              <tr><th>Nom de la partition</th><td>{{ partition }}</td></tr>
+              <tr><th>Holders</th><td>{{ ansible_devices[device].partitions[partition].holders | join(', ') }}</td></tr>
+              <tr><th>ids</th><td>{{ ansible_devices[device].partitions[partition].links.ids | join(', ') }}</td></tr>
+              <tr><th>labels</th><td>{{ ansible_devices[device].partitions[partition].links.labels | join(', ') }}</td></tr>
+              <tr><th>masters</th><td>{{ ansible_devices[device].partitions[partition].links.masters | join(', ') }}</td></tr>
+              <tr><th>uuids</th><td>{{ ansible_devices[device].partitions[partition].links.uuids | join(', ') }}</td></tr>
+              <tr><th>taille</th><td>{{ ansible_devices[device].partitions[partition].size }}</td></tr>
+              <tr><th>uuid</th><td>{{ ansible_devices[device].partitions[partition].uuid }}</td></tr>
+            </tbody>
+          </table>
+
+        {% endfor %}
+      {% endif %}
+      {% endfor %}
+
+
+    </div>
+  </body>
+</html>
