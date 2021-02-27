@@ -7,7 +7,7 @@ Le but de ce repo est de fournir un script qui permet de générer une page html
 Installer ansible et git
 
 ```
-apt install ansible git
+sudo apt install ansible git
 ```
 
 
