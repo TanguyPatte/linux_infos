@@ -14,8 +14,8 @@ apt install ansible git
 Cloner ce repo et lancer ansible
 
 ```
-git clone
-cd
+git clone https://github.com/TanguyPatte/linux_infos.git
+cd linux_infos
 ansible-playbook playbook.yml
 ```
 
